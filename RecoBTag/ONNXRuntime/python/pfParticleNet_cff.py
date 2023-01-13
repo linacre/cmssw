@@ -33,12 +33,26 @@ pfParticleNetMassRegressionJetTags = boostedJetONNXJetTagsProducer.clone(
     flav_names = ["mass"],
 )
 
+pfParticleNetRetrainedMassRegressionJetTags = boostedJetONNXJetTagsProducer.clone(
+    src = 'pfParticleNetTagInfos',
+    preprocess_json = 'RecoBTag/Combined/data/ParticleNetAK8/MassRegression/V01/preprocess.json',
+    model_path = 'RecoBTag/ONNXRuntime/data/newtraining_narrowbins.onnx',
+    flav_names = ["mass"],
+)
+
+pfParticleNetAlternativeMassRegressionJetTags = boostedJetONNXJetTagsProducer.clone(
+    src = 'pfParticleNetTagInfos',
+    preprocess_json = 'RecoBTag/Combined/data/ParticleNetAK8/MassRegression/V01/preprocess.json',
+    model_path = 'RecoBTag/ONNXRuntime/data/newtraining_widebins.onnx',
+    flav_names = ["mass"],
+)
+
 from CommonTools.PileupAlgos.Puppi_cff import puppi
 from PhysicsTools.PatAlgos.slimming.primaryVertexAssociation_cfi import primaryVertexAssociation
 
 # This task is not used, useful only if we run it from RECO jets (RECO/AOD)
 pfParticleNetTask = cms.Task(puppi, primaryVertexAssociation, pfParticleNetTagInfos,
-                             pfParticleNetJetTags, pfMassDecorrelatedParticleNetJetTags, pfParticleNetMassRegressionJetTags,
+                             pfParticleNetJetTags, pfMassDecorrelatedParticleNetJetTags, pfParticleNetMassRegressionJetTags, pfParticleNetRetrainedMassRegressionJetTags, pfParticleNetAlternativeMassRegressionJetTags,
                              pfParticleNetDiscriminatorsJetTags, pfMassDecorrelatedParticleNetDiscriminatorsJetTags)
 
 # declare all the discriminators
@@ -55,8 +69,16 @@ _pfMassDecorrelatedParticleNetJetTagsProbs = ['pfMassDecorrelatedParticleNetJetT
 _pfMassDecorrelatedParticleNetJetTagsMetaDiscrs = ['pfMassDecorrelatedParticleNetDiscriminatorsJetTags:' + disc.name.value()
                                    for disc in pfMassDecorrelatedParticleNetDiscriminatorsJetTags.discriminators]
 
-_pfParticleNetMassRegressionOutputs = ['pfParticleNetMassRegressionJetTags:' + flav_name
+_pfParticleNetMassRegressionOutput = ['pfParticleNetMassRegressionJetTags:' + flav_name
                                        for flav_name in pfParticleNetMassRegressionJetTags.flav_names]
+
+_pfParticleNetRetrainedMassRegressionOutput = ['pfParticleNetRetrainedMassRegressionJetTags:' + flav_name
+                                       for flav_name in pfParticleNetRetrainedMassRegressionJetTags.flav_names]
+
+_pfParticleNetAlternativeMassRegressionOutput = ['pfParticleNetAlternativeMassRegressionJetTags:' + flav_name
+                                       for flav_name in pfParticleNetAlternativeMassRegressionJetTags.flav_names]
+
+_pfParticleNetMassRegressionOutputs = _pfParticleNetMassRegressionOutput + _pfParticleNetRetrainedMassRegressionOutput + _pfParticleNetAlternativeMassRegressionOutput
 
 _pfParticleNetJetTagsAll = _pfParticleNetJetTagsProbs + _pfParticleNetJetTagsMetaDiscrs + \
     _pfMassDecorrelatedParticleNetJetTagsProbs + _pfMassDecorrelatedParticleNetJetTagsMetaDiscrs
