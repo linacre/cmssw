@@ -1,1 +1,20 @@
 Introduction to CMSSW: http://cms-sw.github.io
+
+To create custom UL18 nanoAOD with the new run2 training:
+```
+cmsrel CMSSW_10_6_26
+cd CMSSW_10_6_26/src
+cmsenv
+
+git cms-addpkg RecoBTag/ONNXRuntime
+git cms-addpkg PhysicsTools/NanoAOD
+git remote add linacre https://github.com/linacre/cmssw.git
+git fetch -p linacre
+git checkout -b CMSSW_10_6_26_newTraining --track linacre/CMSSW_10_6_26_newTraining
+
+scram b
+cd ../..
+
+# cmsDriver command
+cmsDriver.py  --python_filename NMSSMCascade_7_step_cfg.py --eventcontent NANOAODSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier NANOAODSIM --fileout file:NMSSMCascade_7_step_cfg.root --conditions 106X_upgrade2018_realistic_v16_L1v1 --step NANO --filein file:in.root --era Run2_2018,run2_nanoAOD_106Xv2 --no_exec --mc -n -1
+```
