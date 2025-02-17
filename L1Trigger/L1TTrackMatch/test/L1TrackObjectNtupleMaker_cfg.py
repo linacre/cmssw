@@ -4,6 +4,7 @@
 
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
+import FWCore.ParameterSet.VarParsing as VarParsing
 import os
 
 ############################################################
@@ -42,11 +43,20 @@ process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(0) # default: 0
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(20))
+options = VarParsing.VarParsing ('analysis')
+options.parseArguments()
 
-readFiles = cms.untracked.vstring(
-    '/store/mc/Phase2Spring23DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_L1TFix_Trk1GeV_131X_mcRun4_realistic_v9-v1/50000/1cc5c14c-5bae-4e68-a369-04e230788660.root'
-)
+inputFiles = []
+for filePath in options.inputFiles:
+    if filePath.endswith(".root"):
+        inputFiles.append(filePath)
+    else:
+        inputFiles += FileUtils.loadListFromFile(filePath)
+
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+
+readFiles = cms.untracked.vstring(inputFiles)
+# readFiles = cms.untracked.vstring('/store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root')
 secFiles = cms.untracked.vstring()
 
 process.source = cms.Source ("PoolSource",
@@ -61,7 +71,8 @@ process.Timing = cms.Service("Timing",
   useJobReport = cms.untracked.bool(False)
 )
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('GTTObjects_ttbar200PU_Spring23.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string(f'/mercury/data3/linacre/linacre-l1t/output_1420pre4/GTTObjects_{options.outputFile}'), closeFileFast = cms.untracked.bool(True))
+# process.TFileService = cms.Service("TFileService", fileName = cms.string('GTTObjects_ttbar200PU_Spring23.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
@@ -108,7 +119,7 @@ process.pPV = cms.Path(process.l1tVertexFinder)
 if runVtxNN:
     process.l1tVertexFinderEmulator = process.l1tVertexProducer.clone()
     process.l1tVertexFinderEmulator.VertexReconstruction.Algorithm = "NNEmulation"
-
+    # Note: these cuts don't actually change the selected tracks wrt the ones in the nominal l1tTrackSelectionProducer because of the extra comma ...
     process.l1tTrackSelectionProducer.cutSet = cms.PSet(ptMin = cms.double(2.0), # pt must be greater than this value, [GeV]
                                                         absEtaMax = cms.double(2.4), # absolute value of eta must be less than this value
                                                         absZ0Max = cms.double(15.0), # z0 must be less than this value, [cm]
@@ -128,7 +139,7 @@ if runVtxNN:
 else:
     VertexAssociator = process.l1tTrackVertexAssociationProducer
     AssociationName = "l1tTrackVertexAssociationProducer"
-    
+# TODO: use NN association emulation also for downstream quantities like l1tTrackVertexAssociationProducerForEtMiss. Currently, TrackMET emulation uses the NN emulated vertex but the nominal track-vertex association.
 process.pPVemu = cms.Path(process.l1tVertexFinderEmulator)
 
 # HYBRID: prompt tracking
@@ -285,6 +296,184 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
 
 process.ntuple = cms.Path(process.L1TrackNtuple)
 
+# variations
+
+parameters = [ "Algorithm", "PFA_EtaDependentResolution", "PFA_ResolutionSF", "PFA_UseMultiplicityMaxima", "PFA_WeightFunction", "PFA_WeightedZ0", "WeightedMean" ]
+
+# PFA = "PFASingleVertex"
+PFA = "PFA"
+
+'''
+    ["", PFA, True, SF, False, 3, 0, P],
+    ["", PFA, True, SF, False, 2, 0, P],
+    ["", PFA, True, SF, False, 1, 0, P],
+    ["", PFA, True, SF, False, 0, 0, P],
+    ["", PFA, True, SF, False, 3, 1, P],
+    #["", PFA, True, SF, False, 2, 1, P],
+    ["", PFA, True, SF, False, 1, 1, P],
+    ["", PFA, True, SF, False, 0, 1, P],
+    ["", PFA, True, SF, False, 3, 2, P],
+    ["", PFA, True, SF, False, 2, 2, P],
+    #["", PFA, True, SF, False, 1, 2, P],
+    #["", PFA, True, SF, False, 0, 2, P],
+    ["", PFA, True, SF, False, 3, 3, P],
+    #["", PFA, True, SF, False, 2, 3, P],
+    #["", PFA, True, SF, False, 1, 3, P],
+    #["", PFA, True, SF, False, 0, 3, P],
+    ["", PFA, True, SF, False, 3, 4, P],
+    ["", PFA, True, SF, False, 3, 5, P],
+    ["", PFA, True, SF, False, 2, 6, P],
+'''
+
+variations_template = lambda SF, P : [
+
+    ["", PFA, False, SF, False, 3, 0, P],
+    ["", PFA, False, SF, False, 2, 0, P],
+    ["", PFA, False, SF, False, 1, 0, P],
+    #["", PFA, False, SF, False, 0, 0, P],
+    ["", PFA, False, SF, False, 3, 1, P],
+    #["", PFA, False, SF, False, 2, 1, P],
+    ["", PFA, False, SF, False, 1, 1, P],
+    #["", PFA, False, SF, False, 0, 1, P],
+    ["", PFA, False, SF, False, 3, 2, P],
+    ["", PFA, False, SF, False, 2, 2, P],
+    #["", PFA, False, SF, False, 1, 2, P],
+    #["", PFA, False, SF, False, 0, 2, P],
+    ["", PFA, False, SF, False, 3, 3, P],
+    #["", PFA, False, SF, False, 2, 3, P],
+    #["", PFA, False, SF, False, 1, 3, P],
+    #["", PFA, False, SF, False, 0, 3, P],
+    #["", PFA, False, SF, False, 3, 4, P],
+    #["", PFA, False, SF, False, 3, 5, P],
+    #["", PFA, False, SF, False, 2, 6, P],
+
+    ]
+
+# SFFHLA = 0.86673747
+# SFFH = 1.46588787
+
+FHLAbinwidth = 0.15
+FHbinwidth = 0.15991504
+# PFAbinwidth = 0.03997876
+PFAbinwidth = 0.15991504
+PFAGaussianWidth = 0.15
+
+SFFHLA = (2*FHLAbinwidth - PFAbinwidth) / (2*PFAGaussianWidth)
+SFFH = (3*FHbinwidth - PFAbinwidth) / (2*PFAGaussianWidth)
+
+algo_template = lambda algo: [
+    ["", algo, False, 0, False, 0, 0, 1],
+    ["", algo, False, 0, False, 0, 0, 2],
+    ["", algo, False, 0, False, 0, 1, 1],
+    ["", algo, False, 0, False, 0, 1, 2],
+    ]
+
+variations = algo_template("fastHisto") + algo_template("fastHistoLooseAssociation")
+variations += variations_template(SFFH, 1) + variations_template(SFFH, 2)
+#variations += variations_template(1.0, 2) + variations_template(1.189, 2) + variations_template(1.414, 2) + variations_template(1.682, 2) + variations_template(2.0, 2) + variations_template(2.4, 2) + variations_template(2.9, 2)
+#variations += variations_template(0.5, 1) + variations_template(0.63, 1) + variations_template(0.794, 1) + variations_template(1.0, 1) + variations_template(1.26, 1) + variations_template(1.587, 1) + variations_template(2.0, 1)
+
+VertexAssociators = {}
+AssociationNames = {}
+
+# TODO: currently assuming L1TRKALGO = 'HYBRID_PROMPTANDDISP'
+for variation in variations:
+    # automatically generate the label and store at the first index
+    variation[0] = f"{variation[1]}Z{variation[6]}P{variation[7]}" if "PFA" not in variation[1] else f"{variation[1]}{'Eta' if variation[2] else 'NoE'}SF{100*variation[3]:03.0f}{'MM' if variation[4] else 'PM'}WF{variation[5]}Z{variation[6]}P{variation[7]}"
+    print(variation[0])
+    setattr(process, f'l1tVertexFinder{variation[0]}', process.l1tVertexFinder.clone())
+    for p, param in enumerate(parameters):
+        # print(f'l1tVertexFinder{variation[0]}.VertexReconstruction.{param}', variation[1 + p])
+        setattr( getattr(process, f'l1tVertexFinder{variation[0]}' ).VertexReconstruction , f'{param}', variation[1 + p])
+    setattr(process, f'pPV{variation[0]}', cms.Path(getattr(process, f'l1tVertexFinder{variation[0]}')))
+
+    setattr(process, f'L1TrackNtuple{variation[0]}', process.L1TrackNtuple.clone())
+    # setattr(process, f'L1TrackNtuple{variation[0]}.RecoVertexInputTag', cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices"))
+    # setattr( getattr(process, f'L1TrackNtuple{variation[0]}' ), "RecoVertexInputTag", cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices"))
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).RecoVertexInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+
+
+    if runVtxNN:
+        setattr(process, f'l1tTrackVertexNNAssociationProducer{variation[0]}', process.l1tTrackVertexNNAssociationProducer.clone())
+        getattr(process, f'l1tTrackVertexNNAssociationProducer{variation[0]}' ).l1VerticesInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+        VertexAssociators[variation[0]] = getattr(process, f'l1tTrackVertexNNAssociationProducer{variation[0]}')
+        AssociationNames[variation[0]] = f'l1tTrackVertexNNAssociationProducer{variation[0]}'
+    else:
+        setattr(process, f'l1tTrackVertexAssociationProducer{variation[0]}', process.l1tTrackVertexAssociationProducer.clone())
+        getattr(process, f'l1tTrackVertexAssociationProducer{variation[0]}' ).l1VerticesInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+        VertexAssociators[variation[0]] = getattr(process, f'l1tTrackVertexAssociationProducer{variation[0]}')
+        AssociationNames[variation[0]] = f'l1tTrackVertexAssociationProducer{variation[0]}'
+
+    setattr(process, f'l1tTrackVertexAssociationProducerExtended{variation[0]}', process.l1tTrackVertexAssociationProducerExtended.clone())
+    setattr(process, f'l1tTrackVertexAssociationProducerForJets{variation[0]}', process.l1tTrackVertexAssociationProducerForJets.clone())
+    setattr(process, f'l1tTrackVertexAssociationProducerExtendedForJets{variation[0]}', process.l1tTrackVertexAssociationProducerExtendedForJets.clone())
+    setattr(process, f'l1tTrackVertexAssociationProducerForEtMiss{variation[0]}', process.l1tTrackVertexAssociationProducerForEtMiss.clone())
+    setattr(process, f'l1tTrackVertexAssociationProducerExtendedForEtMiss{variation[0]}', process.l1tTrackVertexAssociationProducerExtendedForEtMiss.clone())
+
+    getattr(process, f'l1tTrackVertexAssociationProducerExtended{variation[0]}' ).l1VerticesInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+    getattr(process, f'l1tTrackVertexAssociationProducerForJets{variation[0]}' ).l1VerticesInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+    getattr(process, f'l1tTrackVertexAssociationProducerExtendedForJets{variation[0]}' ).l1VerticesInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+    getattr(process, f'l1tTrackVertexAssociationProducerForEtMiss{variation[0]}' ).l1VerticesInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+    getattr(process, f'l1tTrackVertexAssociationProducerExtendedForEtMiss{variation[0]}' ).l1VerticesInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+
+    pathtemp = cms.Path(VertexAssociators[variation[0]] * getattr(process, f'l1tTrackVertexAssociationProducerExtended{variation[0]}') *
+                                                    getattr(process, f'l1tTrackVertexAssociationProducerForJets{variation[0]}') * getattr(process, f'l1tTrackVertexAssociationProducerExtendedForJets{variation[0]}') *
+                                                    getattr(process, f'l1tTrackVertexAssociationProducerForEtMiss{variation[0]}') * getattr(process, f'l1tTrackVertexAssociationProducerExtendedForEtMiss{variation[0]}'))
+    setattr(process, f'pL1TrackVertexAssociation{variation[0]}', pathtemp )
+
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).L1TrackSelectedAssociatedInputTag = cms.InputTag(AssociationNames[variation[0]], "Level1TTTracksSelectedAssociated") # TTTracks, prompt, selected, associated
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).L1TrackSelectedAssociatedForJetsInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerForJets{variation[0]}', "Level1TTTracksSelectedAssociated") # TTTracks, prompt, selected, associated
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).L1TrackSelectedAssociatedForEtMissInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerForEtMiss{variation[0]}', "Level1TTTracksSelectedAssociated") # TTTracks, prompt, selected, associated
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).L1TrackExtendedSelectedAssociatedInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerExtended{variation[0]}', "Level1TTTracksExtendedSelectedAssociated") # TTTracks, extended, selected, associated
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).L1TrackExtendedSelectedAssociatedForJetsInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerExtendedForJets{variation[0]}', "Level1TTTracksExtendedSelectedAssociated") # TTTracks, extended, selected, associated
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).L1TrackExtendedSelectedAssociatedForEtMissInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerExtendedForEtMiss{variation[0]}', "Level1TTTracksExtendedSelectedAssociated") # TTTracks, extended, selected, associated
+
+
+    setattr(process, f'l1tTrackJets{variation[0]}', process.l1tTrackJets.clone())
+    setattr(process, f'l1tTrackJetsExtended{variation[0]}', process.l1tTrackJetsExtended.clone())
+    getattr(process, f'l1tTrackJets{variation[0]}' ).L1TrackInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerForJets{variation[0]}', "Level1TTTracksSelectedAssociated")
+    getattr(process, f'l1tTrackJetsExtended{variation[0]}' ).L1TrackInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerExtendedForJets{variation[0]}', "Level1TTTracksExtendedSelectedAssociated")
+    setattr(process, f'pL1TrackJets{variation[0]}', cms.Path( getattr(process, f'l1tTrackJets{variation[0]}') * getattr(process, f'l1tTrackJetsExtended{variation[0]}') ) )
+
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).TrackJetsInputTag = cms.InputTag(f'l1tTrackJets{variation[0]}', "L1TrackJets")
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).TrackJetsExtendedInputTag = cms.InputTag(f'l1tTrackJetsExtended{variation[0]}', "L1TrackJetsExtended")
+
+
+    setattr(process, f'l1tTrackFastJets{variation[0]}', process.l1tTrackFastJets.clone())
+    setattr(process, f'l1tTrackFastJetsExtended{variation[0]}', process.l1tTrackFastJetsExtended.clone())
+    getattr(process, f'l1tTrackFastJets{variation[0]}' ).L1TrackInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerForJets{variation[0]}', "Level1TTTracksSelectedAssociated")
+    getattr(process, f'l1tTrackFastJetsExtended{variation[0]}' ).L1TrackInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerExtendedForJets{variation[0]}', "Level1TTTracksExtendedSelectedAssociated")
+    setattr(process, f'pL1TrackFastJets{variation[0]}', cms.Path( getattr(process, f'l1tTrackFastJets{variation[0]}') * getattr(process, f'l1tTrackFastJetsExtended{variation[0]}') ) )
+
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).TrackFastJetsInputTag = cms.InputTag(f'l1tTrackFastJets{variation[0]}', "L1TrackFastJets")
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).TrackFastJetsExtendedInputTag = cms.InputTag(f'l1tTrackFastJetsExtended{variation[0]}', "L1TrackFastJetsExtended")
+
+
+    setattr(process, f'l1tTrackerEtMiss{variation[0]}', process.l1tTrackerEtMiss.clone())
+    setattr(process, f'l1tTrackerEtMissExtended{variation[0]}', process.l1tTrackerEtMissExtended.clone())
+    getattr(process, f'l1tTrackerEtMiss{variation[0]}' ).L1TrackAssociatedInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerForEtMiss{variation[0]}', "Level1TTTracksSelectedAssociated")
+    getattr(process, f'l1tTrackerEtMissExtended{variation[0]}' ).L1TrackAssociatedInputTag = cms.InputTag(f'l1tTrackVertexAssociationProducerExtendedForEtMiss{variation[0]}', "Level1TTTracksExtendedSelectedAssociated")
+    setattr(process, f'pTkMET{variation[0]}', cms.Path( getattr(process, f'l1tTrackerEtMiss{variation[0]}') * getattr(process, f'l1tTrackerEtMissExtended{variation[0]}') ) )
+
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).TrackMETInputTag = cms.InputTag(f'l1tTrackerEtMiss{variation[0]}', "L1TrackerEtMiss")
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).TrackMETExtendedInputTag = cms.InputTag(f'l1tTrackerEtMissExtended{variation[0]}', "L1TrackerExtendedEtMiss")
+
+
+    setattr(process, f'l1tTrackerHTMiss{variation[0]}', process.l1tTrackerHTMiss.clone())
+    setattr(process, f'l1tTrackerHTMissExtended{variation[0]}', process.l1tTrackerHTMissExtended.clone())
+    getattr(process, f'l1tTrackerHTMiss{variation[0]}' ).L1TkJetInputTag = cms.InputTag(f'l1tTrackJets{variation[0]}', "L1TrackJets")
+    getattr(process, f'l1tTrackerHTMissExtended{variation[0]}' ).L1TkJetInputTag = cms.InputTag(f'l1tTrackJetsExtended{variation[0]}', "L1TrackJetsExtended")
+    getattr(process, f'l1tTrackerHTMiss{variation[0]}' ).L1VertexInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+    getattr(process, f'l1tTrackerHTMissExtended{variation[0]}' ).L1VertexInputTag = cms.InputTag(f'l1tVertexFinder{variation[0]}', "L1Vertices")
+    setattr(process, f'pTkMHT{variation[0]}', cms.Path( getattr(process, f'l1tTrackerHTMiss{variation[0]}') * getattr(process, f'l1tTrackerHTMissExtended{variation[0]}') ) )
+
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).TrackMHTInputTag = cms.InputTag(f'l1tTrackerHTMiss{variation[0]}', "L1TrackerHTMiss")
+    getattr(process, f'L1TrackNtuple{variation[0]}' ).TrackMHTExtendedInputTag = cms.InputTag(f'l1tTrackerHTMissExtended{variation[0]}', "L1TrackerHTMissExtended")
+
+
+    setattr(process, f'ntuple{variation[0]}', cms.Path(getattr(process, f'L1TrackNtuple{variation[0]}')))
+
+
 process.out = cms.OutputModule( "PoolOutputModule",
  #                               outputCommands = process.RAWSIMEventContent.outputCommands,
                                 outputCommands = cms.untracked.vstring("keep *","drop *_*_*_HLT"),
@@ -302,3 +491,12 @@ process.pOut = cms.EndPath(process.out)
 # process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmuWithTruth,process.ntuple)
 
 process.schedule = cms.Schedule(process.TTClusterStub, process.TTClusterStubTruth, process.dtc, process.TTTracksEmuWithTruth, process.pL1GTTInput, process.pL1TrackSelection, process.pPV, process.pPVemu,process.pL1TrackVertexAssociation, process.pL1TrackJets, process.pL1TrackJetsEmu,process.pL1TrackFastJets, process.pTkMET, process.pTkMETEmu, process.pTkMHT, process.pTkMHTEmulator,process.pL1TrackTripletEmulator, process.ntuple)
+
+for variation in variations:
+    process.schedule.append( getattr(process, f'pPV{variation[0]}' ) )
+    process.schedule.append( getattr(process, f'pL1TrackVertexAssociation{variation[0]}' ) )
+    process.schedule.append( getattr(process, f'pL1TrackJets{variation[0]}' ) )
+    process.schedule.append( getattr(process, f'pL1TrackFastJets{variation[0]}' ) )
+    process.schedule.append( getattr(process, f'pTkMET{variation[0]}' ) )
+    process.schedule.append( getattr(process, f'pTkMHT{variation[0]}' ) )
+    process.schedule.append( getattr(process, f'ntuple{variation[0]}' ) )

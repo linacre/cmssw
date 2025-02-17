@@ -865,8 +865,11 @@ namespace l1tVertexFinder {
     float vxPt = 0.;
     RecoVertex leading_vertex;
 
-    for (float z = settings_->vx_histogram_min(); z < settings_->vx_histogram_max();
-         z += settings_->vx_histogram_binwidth()) {
+    int nbins = std::ceil((settings_->vx_pfa_max() - settings_->vx_pfa_min()) / settings_->vx_pfa_binwidth());
+    // for (float z = settings_->vx_histogram_min(); z < settings_->vx_histogram_max();
+    //      z += settings_->vx_histogram_binwidth()) {
+    for (int i = 0; i <= nbins; ++i) {
+      float z = settings_->vx_pfa_min() + i * settings_->vx_pfa_binwidth();
       RecoVertex vertex;
       for (const L1Track& track : fitTracks_) {
         if (std::abs(z - track.z0()) < settings_->vx_width()) {
@@ -874,7 +877,8 @@ namespace l1tVertexFinder {
         }
       }
       computeAndSetVertexParameters(vertex, {}, {});
-      vertex.setZ0(z);
+      if (settings_->vx_pfa_weightedz0() == 0)
+        vertex.setZ0(z);
       if (vertex.pt() > vxPt) {
         leading_vertex = vertex;
         vxPt = vertex.pt();
@@ -976,6 +980,8 @@ namespace l1tVertexFinder {
         sums.at(i) += hist.at(i + j);
       }
       computeAndSetVertexParameters(sums.at(i), bin_centers, counts);
+      if (settings_->vx_pfa_weightedz0() == 0)
+        sums.at(i).setZ0(bin_centers[settings_->vx_windowSize() / 2]);
     }
 
     // Find the maxima of the sums
