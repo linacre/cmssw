@@ -143,6 +143,8 @@ namespace l1tVertexFinder {
     void Kmeans();
     /// Find maximum distance in two clusters of tracks
     void PVR();
+    /// Manny Algorithm
+    void Manny();
 
   private:
     const AlgoSettings* settings_;

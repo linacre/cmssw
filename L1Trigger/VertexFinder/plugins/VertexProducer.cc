@@ -59,6 +59,9 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
     case Algorithm::NNEmulation:
       edm::LogInfo("VertexProducer") << "VertexProducer::Finding vertices using the Neural Network Emulation";
       break;
+    case Algorithm::Manny:
+      edm::LogInfo("VertexProducer") << "VertexProducer::Finding vertices using the Manny algorithm";
+      break;
   }
 
   //--- Define EDM output to be written to file (if required)
@@ -144,6 +147,9 @@ void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::Event
       break;
     case Algorithm::NNEmulation:
       vf.NNVtxEmulation(TrkWSesh_, PattRecSesh_);
+      break;
+    case Algorithm::Manny:
+      vf.Manny();
       break;
   }
 

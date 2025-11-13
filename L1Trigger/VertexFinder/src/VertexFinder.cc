@@ -442,6 +442,16 @@ namespace l1tVertexFinder {
     }
   }
 
+  void VertexFinder::Manny() {
+    // Stub implementation for Manny algorithm
+    iterations_ = 0;
+    // TODO: Implement the Manny vertexing algorithm
+    // For now, this is a placeholder that creates an empty vertex collection
+    if (settings_->debug() > 0) {
+      edm::LogInfo("VertexFinder") << "Manny::Algorithm called with " << fitTracks_.size() << " tracks";
+    }
+  }
+
   void VertexFinder::findPrimaryVertex() {
     if (settings_->vx_precision() == Precision::Emulation) {
       pv_index_ = std::distance(verticesEmulation_.begin(),
