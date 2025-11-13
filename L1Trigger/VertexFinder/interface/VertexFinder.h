@@ -9,6 +9,7 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "L1Trigger/VertexFinder/interface/AlgoSettings.h"
 #include "L1Trigger/VertexFinder/interface/RecoVertex.h"
+#include "PhysicsTools/TensorFlow/interface/TensorFlow.h"
 #include "ap_fixed.h"
 #include "hls4ml/emulator.h"
 
@@ -153,7 +154,7 @@ namespace l1tVertexFinder {
     /// Find maximum distance in two clusters of tracks
     void PVR();
     /// Manny Algorithm
-    void Manny();
+    void Manny(tensorflow::Session* firstSesh = nullptr, tensorflow::Session* secondSesh = nullptr);
 
   private:
     const AlgoSettings* settings_;
