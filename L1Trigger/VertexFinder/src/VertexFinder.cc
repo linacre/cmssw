@@ -444,7 +444,7 @@ namespace l1tVertexFinder {
 
   void VertexFinder::Manny(tensorflow::Session* firstSesh, tensorflow::Session* secondSesh) {
     // Stub implementation for Manny algorithm
-    iterations_ = 0;
+    RecoVertex leading_vertex;
 
     if (settings_->debug() > 0) {
       edm::LogInfo("VertexFinder") << "Manny::Algorithm called with " << fitTracks_.size() << " tracks";
@@ -491,6 +491,10 @@ namespace l1tVertexFinder {
     if (settings_->debug() > 0) {
       edm::LogInfo("VertexFinder") << "Manny::Processed " << counter << " tracks, vertex finding not yet implemented";
     }
+
+    leading_vertex.setZ0(0.0);
+    vertices_.emplace_back(leading_vertex);
+    pv_index_ = 0;  // by default Manny algorithm finds only hard PV
   }
 
   void VertexFinder::findPrimaryVertex() {
