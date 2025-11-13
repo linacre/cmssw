@@ -144,7 +144,7 @@ namespace l1tVertexFinder {
     /// Find maximum distance in two clusters of tracks
     void PVR();
     /// Manny Algorithm
-    void Manny();
+    void Manny(tensorflow::Session* firstSesh = nullptr, tensorflow::Session* secondSesh = nullptr);
 
   private:
     const AlgoSettings* settings_;

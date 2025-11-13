@@ -442,13 +442,54 @@ namespace l1tVertexFinder {
     }
   }
 
-  void VertexFinder::Manny() {
+  void VertexFinder::Manny(tensorflow::Session* firstSesh, tensorflow::Session* secondSesh) {
     // Stub implementation for Manny algorithm
     iterations_ = 0;
-    // TODO: Implement the Manny vertexing algorithm
-    // For now, this is a placeholder that creates an empty vertex collection
+
     if (settings_->debug() > 0) {
       edm::LogInfo("VertexFinder") << "Manny::Algorithm called with " << fitTracks_.size() << " tracks";
+    }
+
+    if (firstSesh == nullptr || secondSesh == nullptr) {
+      edm::LogWarning("VertexFinder") << "Manny::TensorFlow sessions are null, skipping algorithm";
+      return;
+    }
+
+    // #### Weight Tracks: ####
+    // Loop over tracks -> weight the network -> set track weights
+    tensorflow::Tensor inputTrkWeight(tensorflow::DT_FLOAT, {1, 3});  // Single batch of 3 values
+    uint counter = 0;
+
+    for (auto& track : fitTracks_) {
+      // For Simulation precision, use direct float values (not ap_fixed types)
+      float trackPt = track.pt();
+      float trackEta = std::abs(track.eta());
+      float trackMVA = track.getTTTrackPtr()->getMVAQualityBits();
+
+      inputTrkWeight.tensor<float, 2>()(0, 0) = trackPt;
+      inputTrkWeight.tensor<float, 2>()(0, 1) = trackMVA;
+      inputTrkWeight.tensor<float, 2>()(0, 2) = trackEta;
+
+      // Run first session: track weight
+      std::vector<tensorflow::Tensor> outputTrkWeight;
+      tensorflow::run(firstSesh, {{"NNvtx_input_track_weight:0", inputTrkWeight}}, {"Identity:0"}, &outputTrkWeight);
+
+      // Set track weight
+      float trackWeight = outputTrkWeight[0].tensor<float, 2>()(0, 0);
+      track.setWeight(trackWeight);
+
+      if (settings_->debug() > 2) {
+        edm::LogInfo("VertexFinder") << "Manny::Track " << counter << " pt=" << trackPt << " eta=" << trackEta
+                                     << " MVA=" << trackMVA << " weight=" << trackWeight;
+      }
+
+      ++counter;
+    }
+
+    // TODO: Implement vertex finding logic using secondSesh
+    // This is a placeholder - the actual vertex finding algorithm needs to be implemented
+    if (settings_->debug() > 0) {
+      edm::LogInfo("VertexFinder") << "Manny::Processed " << counter << " tracks, vertex finding not yet implemented";
     }
   }
 

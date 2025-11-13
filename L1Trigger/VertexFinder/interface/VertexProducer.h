@@ -52,6 +52,11 @@ private:
   tensorflow::GraphDef* PattRecGraph_;
   tensorflow::Session* PattRecSesh_;
 
+  tensorflow::GraphDef* FirstGraph_;
+  tensorflow::Session* FirstSesh_;
+  tensorflow::GraphDef* SecondGraph_;
+  tensorflow::Session* SecondSesh_;
+
   l1tVertexFinder::AlgoSettings settings_;
 };
 
