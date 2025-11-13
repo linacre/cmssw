@@ -23,7 +23,8 @@ namespace l1tVertexFinder {
     adaptiveVertexReconstruction,
     HPV,
     Kmeans,
-    NNEmulation
+    NNEmulation,
+    Manny
   };
 
   enum class Precision { Simulation, Emulation };
