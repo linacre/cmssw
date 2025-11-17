@@ -82,6 +82,8 @@ namespace l1tVertexFinder {
     // Functions for NN:
     std::string vx_trkw_graph() const { return vx_trkw_graph_.fullPath(); }
     std::string vx_pattrec_graph() const { return vx_pattrec_graph_.fullPath(); }
+    std::string vx_manny_first_graph() const { return vx_manny_first_graph_.fullPath(); }
+    std::string vx_manny_second_graph() const { return vx_manny_second_graph_.fullPath(); }
 
     //=== Debug printout
     unsigned int debug() const { return debug_; }
@@ -131,6 +133,8 @@ namespace l1tVertexFinder {
     unsigned int vx_kmeans_nclusters_;
     edm::FileInPath vx_trkw_graph_;     //For NNVtx (TrackWeight)
     edm::FileInPath vx_pattrec_graph_;  //For NNVtx (PatternRec)
+    edm::FileInPath vx_manny_first_graph_;   //For Manny algorithm
+    edm::FileInPath vx_manny_second_graph_;  //For Manny algorithm
     // Debug printout
     unsigned int debug_;
   };

@@ -71,6 +71,10 @@ l1tVertexProducer = cms.EDProducer('VertexProducer',
         TrackWeightGraph = cms.FileInPath("L1Trigger/VertexFinder/data/NNVtx_WeightModelGraph.pb"),
         # Pattern recognition NN graph
         PatternRecGraph = cms.FileInPath("L1Trigger/VertexFinder/data/NNVtx_PatternModelGraph.pb"),
+        # Manny algorithm first network graph
+        MannyFirstGraph = cms.FileInPath("L1Trigger/VertexFinder/data/Manny_FirstModelGraph.pb"),
+        # Manny algorithm second network graph
+        MannySecondGraph = cms.FileInPath("L1Trigger/VertexFinder/data/Manny_SecondModelGraph.pb"),
     ),
   # Debug printout
   debug  = cms.uint32(0)
