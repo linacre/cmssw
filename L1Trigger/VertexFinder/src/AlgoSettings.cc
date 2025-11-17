@@ -39,6 +39,7 @@ namespace l1tVertexFinder {
         vx_kmeans_nclusters_(vertex_.getParameter<unsigned int>("KmeansNumClusters")),
         vx_wtnn_(vertex_.getParameter<std::string>("WeightNNVtx")),
         vx_patnn_(vertex_.getParameter<std::string>("PatternNNVtx")),
+        vx_manny_first_graph_(vertex_.getParameter<edm::FileInPath>("MannyFirstGraph")),
         // Debug printout
         debug_(iConfig.getParameter<unsigned int>("debug")) {
     const std::string algoName(vertex_.getParameter<std::string>("Algorithm"));

@@ -88,6 +88,8 @@ l1tVertexProducer = cms.EDProducer('VertexProducer',
         WeightNNVtx = cms.string("L1TNNVtx_Weight_Model_v0"),
         # Pattern recognition NN graph
         PatternNNVtx = cms.string("L1TNNVtx_Pattern_Model_v0"),
+        # Manny algorithm first network graph
+        MannyFirstGraph = cms.FileInPath("L1Trigger/VertexFinder/data/Manny_FirstModelGraph.pb"),
     ),
   # Debug printout
   debug  = cms.uint32(0)

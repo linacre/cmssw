@@ -104,6 +104,7 @@ namespace l1tVertexFinder {
     // Functions for NN:
     std::string vx_wtnn() const { return vx_wtnn_; }
     std::string vx_patnn() const { return vx_patnn_; }
+    std::string vx_manny_first_graph() const { return vx_manny_first_graph_.fullPath(); }
 
     //=== Debug printout
     unsigned int debug() const { return debug_; }
@@ -161,7 +162,7 @@ namespace l1tVertexFinder {
     unsigned int vx_kmeans_nclusters_;
     std::string vx_wtnn_;   //For NNVtx (Track)
     std::string vx_patnn_;  //For NNVtx (Pattern)
-
+    edm::FileInPath vx_manny_first_graph_;   //For Manny algorithm
     // Debug printout
     unsigned int debug_;
   };
