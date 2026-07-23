@@ -91,6 +91,7 @@ private:
   l1t::demo::BoardDataWriter fileWriterVertexAssociatedTracks_;
   l1t::demo::BoardDataWriter fileWriterOutputToCorrelator_;
   l1t::demo::BoardDataWriter fileWriterOutputToGlobalTrigger_;
+  l1t::demo::BoardDataWriter fileWriterOutputAll_;
 };
 
 //
@@ -167,7 +168,16 @@ GTTFileWriter::GTTFileWriter(const edm::ParameterSet& iConfig)
                                        l1t::demo::gtt::kMaxLinesPerFile,
                                        l1t::demo::gtt::kChannelIdsOutputToGlobalTrigger,
                                        l1t::demo::gtt::kChannelSpecsOutputToGlobalTrigger,
-                                       false) {}
+                                       false),
+      fileWriterOutputAll_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
+                                       iConfig.getUntrackedParameter<std::string>("outputAllFilename"),
+                                       iConfig.getUntrackedParameter<std::string>("fileExtension"),
+                                       l1t::demo::gtt::kFramesPerTMUXPeriod,
+                                       l1t::demo::gtt::kGTTBoardTMUX,
+                                       l1t::demo::gtt::kMaxLinesPerFile,
+                                       l1t::demo::gtt::kChannelIdsOutputAll,
+                                       l1t::demo::gtt::kChannelSpecsOutputAll,
+                                       true) {}
 
 void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
@@ -237,6 +247,15 @@ void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
                              std::vector<ap_uint<64>>(39, 0));  // Placeholder until light meson objects are written
   eventDataGlobalTrigger.add({"vertices", 3}, tracksVerticesData);
 
+  l1t::demo::EventData eventDataAll;
+  for (size_t i = 0; i < 13; i++) {
+    eventDataAll.add({"sums", i}, sumsData);
+    eventDataAll.add({"verticesmerged", i}, tracksVerticesData);
+  }
+  for (size_t i = 0; i < 3; i++) {
+    eventDataAll.add({"verticesstaggered", i}, vertexData.at(0));
+  }
+
   // 3) Pass the 'event data' object to the file writer
 
   fileWriterInputTracks_.addEvent(eventDataTracks);
@@ -245,6 +264,7 @@ void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   fileWriterVertexAssociatedTracks_.addEvent(eventDataVertexAssociatedTracks);
   fileWriterOutputToCorrelator_.addEvent(eventDataVertices);
   fileWriterOutputToGlobalTrigger_.addEvent(eventDataGlobalTrigger);
+  fileWriterOutputAll_.addEvent(eventDataAll);
 }
 
 // ------------ method called once each job before the event loop  ------------
@@ -255,7 +275,8 @@ void GTTFileWriter::beginJob() {
                                                                 &fileWriterSelectedTracks_,
                                                                 &fileWriterVertexAssociatedTracks_,
                                                                 &fileWriterOutputToCorrelator_,
-                                                                &fileWriterOutputToGlobalTrigger_};
+                                                                &fileWriterOutputToGlobalTrigger_,
+                                                                &fileWriterOutputAll_};
 
   // Check that all file writers have the same maxEventsPerFile_
   l1t::demo::BoardDataWriter::checkNumEventsPerFile(fileWriters);
@@ -269,7 +290,8 @@ void GTTFileWriter::endJob() {
                                                                 &fileWriterSelectedTracks_,
                                                                 &fileWriterVertexAssociatedTracks_,
                                                                 &fileWriterOutputToCorrelator_,
-                                                                &fileWriterOutputToGlobalTrigger_};
+                                                                &fileWriterOutputToGlobalTrigger_,
+                                                                &fileWriterOutputAll_};
 
   // Writing pending events to file before exiting
   for (auto& fileWriter : fileWriters) {
@@ -301,6 +323,7 @@ void GTTFileWriter::fillDescriptions(edm::ConfigurationDescriptions& description
   desc.addUntracked<std::string>("vertexAssociatedTracksFilename", "L1GTTVertexAssociatedTracksFile");
   desc.addUntracked<std::string>("outputCorrelatorFilename", "L1GTTOutputToCorrelatorFile");
   desc.addUntracked<std::string>("outputGlobalTriggerFilename", "L1GTTOutputToGlobalTriggerFile");
+  desc.addUntracked<std::string>("outputAllFilename", "L1GTTOutputAllFile");
   desc.addUntracked<std::string>("format", "APx");
   desc.addUntracked<std::string>("fileExtension", "txt");
   descriptions.add("GTTFileWriter", desc);

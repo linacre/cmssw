@@ -21,9 +21,10 @@ namespace l1t::demo::gtt {
   static constexpr size_t kGapLengthOutputToGlobalTriggerMesons = 15;
   static constexpr size_t kGapLengthOutputToGlobalTriggerVertices = 6;
   static constexpr size_t kTrackTMUX = 18;  //TMUX of the TrackFindingProcessors
+  static constexpr size_t kCorrelatorTMUX = 18;  //TMUX of the correlator boards
   static constexpr size_t kGTTBoardTMUX =
       6;  //TMUX of the GTT in the current configuration: 6 boards running 3 events in parallel, with a paired board running parallel algorithms
-  static constexpr size_t kMaxLinesPerFile = 972;  //6 events x 18 BX/event x 9 clock cycles/BX
+  static constexpr size_t kMaxLinesPerFile = 1024;  //6 events x 18 BX/event x 9 clock cycles/BX
 
   static constexpr size_t kVertexChanIndex = 0;
 
@@ -102,6 +103,45 @@ namespace l1t::demo::gtt {
       {"taus", {kGTTBoardTMUX, kGapLengthOutputToGlobalTriggerTaus}},
       {"mesons", {kGTTBoardTMUX, kGapLengthOutputToGlobalTriggerMesons}},
       {"vertices", {kGTTBoardTMUX, kGapLengthOutputToGlobalTriggerVertices}}};
+
+  //ALL HW OUTPUTS
+  static const std::map<l1t::demo::LinkId, std::vector<size_t>> kChannelIdsOutputAll = {
+      /* logical channel within time slice -> vector of channel indices (one entry per time slice) */
+      {{"sums", 0}, {112}},
+      {{"sums", 1}, {113}},
+      {{"sums", 2}, {114}},
+      {{"sums", 3}, {115}},
+      {{"sums", 4}, {116}},
+      {{"sums", 5}, {117}},
+      {{"sums", 6}, {118}},
+      {{"sums", 7}, {119}},
+      {{"sums", 8}, {120}},
+      {{"sums", 9}, {121}},
+      {{"sums", 10}, {122}},
+      {{"sums", 11}, {123}},
+      {{"sums", 12}, {52}},
+      {{"verticesmerged", 0}, {4}},
+      {{"verticesmerged", 1}, {5}},
+      {{"verticesmerged", 2}, {6}},
+      {{"verticesmerged", 3}, {7}},
+      {{"verticesmerged", 4}, {8}},
+      {{"verticesmerged", 5}, {9}},
+      {{"verticesmerged", 6}, {10}},
+      {{"verticesmerged", 7}, {11}},
+      {{"verticesmerged", 8}, {12}},
+      {{"verticesmerged", 9}, {13}},
+      {{"verticesmerged", 10}, {14}},
+      {{"verticesmerged", 11}, {15}},
+      {{"verticesmerged", 12}, {53}},
+      {{"verticesstaggered", 0}, {40, 44, 48}},
+      {{"verticesstaggered", 1}, {41, 45, 49}},
+      {{"verticesstaggered", 2}, {84, 80, 76}}};
+
+  static const std::map<std::string, l1t::demo::ChannelSpec> kChannelSpecsOutputAll = {
+      /* interface name -> {link TMUX, inter-packet gap} */
+      {"sums", {kGTTBoardTMUX, kGapLengthOutputToGlobalTriggerSums, 11}},
+      {"verticesmerged", {kGTTBoardTMUX, kGapLengthOutputToGlobalTriggerVertices, 11}},
+      {"verticesstaggered", {kCorrelatorTMUX, kGapLengthOutputToCorrelator}}};
 
 }  // namespace l1t::demo::gtt
 

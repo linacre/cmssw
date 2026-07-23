@@ -51,8 +51,9 @@ namespace l1t::demo {
           ((maxFramesPerFile_ - spec.offset) / (framesPerBX_ * boardTMUX_)) - (tmuxRatio - 1);
       const size_t maxEventsPerFileUnstaggered =
           tmuxRatio * ((maxFramesPerFile_ - spec.offset) / (framesPerBX_ * boardTMUX_ * tmuxRatio));
-      maxEventsPerFile_ =
-          std::min(maxEventsPerFile_, staggerTmuxSlices ? maxEventsPerFileStaggered : maxEventsPerFileUnstaggered);
+      // maxEventsPerFile_ =
+      //     std::min(maxEventsPerFile_, staggerTmuxSlices ? maxEventsPerFileStaggered : maxEventsPerFileUnstaggered);
+      maxEventsPerFile_ = std::min(maxEventsPerFile_, maxEventsPerFileUnstaggered);
     }
 
     resetBoardData();
