@@ -47,13 +47,7 @@ namespace l1t::demo {
                                  "]: Number of channel indices specified, " + std::to_string(indices.size()) +
                                  ", does not match link:board TMUX ratio, " + std::to_string(tmuxRatio));
 
-      const size_t maxEventsPerFileStaggered =
-          ((maxFramesPerFile_ - spec.offset) / (framesPerBX_ * boardTMUX_)) - (tmuxRatio - 1);
-      const size_t maxEventsPerFileUnstaggered =
-          tmuxRatio * ((maxFramesPerFile_ - spec.offset) / (framesPerBX_ * boardTMUX_ * tmuxRatio));
-      // maxEventsPerFile_ =
-      //     std::min(maxEventsPerFile_, staggerTmuxSlices ? maxEventsPerFileStaggered : maxEventsPerFileUnstaggered);
-      maxEventsPerFile_ = std::min(maxEventsPerFile_, maxEventsPerFileUnstaggered);
+      maxEventsPerFile_ = std::min(maxEventsPerFile_, tmuxRatio * ((maxFramesPerFile_ - spec.offset) / (framesPerBX_ * boardTMUX_ * tmuxRatio)));
     }
 
     resetBoardData();
@@ -201,36 +195,13 @@ namespace l1t::demo {
     if (fileWriters.empty())
       return;
 
-    // Create a vector of pointers to all unstaggered file writers
-    std::vector<BoardDataWriter*> fileWritersUnstaggered;
+    const size_t maxEventsPerFile = fileWriters.front()->maxEventsPerFile_;
+
+    // Throw an error if the maxEventsPerFile_ is not the same for all file writers
     for (const auto& fileWriter : fileWriters) {
-      if (!fileWriter->staggerTmuxSlices_) {
-        fileWritersUnstaggered.push_back(fileWriter);
-      }
-    }
-
-    const size_t maxEventsPerFile = fileWritersUnstaggered.empty() ? fileWriters.front()->maxEventsPerFile_
-                                                                   : fileWritersUnstaggered.front()->maxEventsPerFile_;
-
-    // Print a warning if a staggered file writer has a different maxEventsPerFile_ (only a warning because staggered file writers
-    // are not expected to all have the same maxEventsPerFile_ when they don't share the same link:board TMUX ratio)
-    for (const auto& fileWriter : fileWriters) {
-      if (fileWriter->staggerTmuxSlices_ && fileWriter->maxEventsPerFile_ != maxEventsPerFile) {
-        std::cerr << "\nBoardDataWriter: WARNING: A staggered BoardDataWriter has a different maxEventsPerFile_.\n"
-                  << " The first file writer has maxEventsPerFile_ = " << maxEventsPerFile
-                  << ", but a staggered file writer has maxEventsPerFile_ = " << fileWriter->maxEventsPerFile_
-                  << ".\n This is expected only if they are using different link:board TMUX ratios"
-                  << " (or if you're using a mixture of staggered and unstaggered file writers).\n"
-                  << std::endl;
-        break;
-      }
-    }
-
-    // Throw an error if the maxEventsPerFile_ is not the same for all unstaggered file writers
-    for (const auto& fileWriter : fileWritersUnstaggered) {
       if (fileWriter->maxEventsPerFile_ != maxEventsPerFile) {
         throw std::runtime_error(
-            "BoardDataWriter: All unstaggered BoardDataWriters must have the same maxEventsPerFile_.\n"
+            "BoardDataWriter: All BoardDataWriters must have the same maxEventsPerFile_.\n"
             " The first file writer has maxEventsPerFile_ = " +
             std::to_string(maxEventsPerFile) +
             ", but another file writer has maxEventsPerFile_ = " + std::to_string(fileWriter->maxEventsPerFile_) +

@@ -174,7 +174,7 @@ GTTFileWriter::GTTFileWriter(const edm::ParameterSet& iConfig)
                                        iConfig.getUntrackedParameter<std::string>("fileExtension"),
                                        l1t::demo::gtt::kFramesPerTMUXPeriod,
                                        l1t::demo::gtt::kGTTBoardTMUX,
-                                       l1t::demo::gtt::kMaxLinesPerFile,
+                                       1024,
                                        l1t::demo::gtt::kChannelIdsOutputAll,
                                        l1t::demo::gtt::kChannelSpecsOutputAll,
                                        true) {}

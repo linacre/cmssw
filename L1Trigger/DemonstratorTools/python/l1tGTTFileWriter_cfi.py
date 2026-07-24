@@ -3,9 +3,9 @@ import FWCore.ParameterSet.Config as cms
 l1tGTTFileWriter = cms.EDAnalyzer('GTTFileWriter',
   tracks = cms.untracked.InputTag("l1tTTTracksFromTrackletEmulation", "Level1TTTracks"),
   convertedTracks = cms.untracked.InputTag("l1tGTTInputProducer", "Level1TTTracksConverted"),
-  vertices = cms.untracked.InputTag("l1tVertexProducer", "L1VerticesEmulation"),
   selectedTracks = cms.untracked.InputTag("l1tTrackSelectionProducer", "Level1TTTracksSelectedEmulation"),
   vertexAssociatedTracks = cms.untracked.InputTag("l1tTrackSelectionProducer", "Level1TTTracksSelectedAssociatedEmulation"),
+  vertices = cms.untracked.InputTag("l1tVertexProducer", "L1VerticesEmulation"),
   jets = cms.untracked.InputTag("l1tTrackJetsEmulation","L1TrackJets"),
   jetsdisp = cms.untracked.InputTag("l1tTrackJetsExtendedEmulation","L1TrackJetsExtended"),
   htmiss = cms.untracked.InputTag("l1tTrackerEmuHTMiss", "L1TrackerEmuHTMiss"),
@@ -17,6 +17,7 @@ l1tGTTFileWriter = cms.EDAnalyzer('GTTFileWriter',
   vertexAssociatedTracksFilename = cms.untracked.string("L1GTTVertexAssociatedTracksFile"),
   outputCorrelatorFilename = cms.untracked.string("L1GTTOutputToCorrelatorFile"),
   outputGlobalTriggerFilename = cms.untracked.string("L1GTTOutputToGlobalTriggerFile"),
-  fileExtension = cms.untracked.string("txt"),
-  format = cms.untracked.string("APx")
+  outputAllFilename = cms.untracked.string("L1GTTOutputAllFile"),
+  format = cms.untracked.string("APx"),
+  fileExtension = cms.untracked.string("txt")
 )
