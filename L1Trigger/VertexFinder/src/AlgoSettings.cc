@@ -24,6 +24,7 @@ namespace l1tVertexFinder {
         vx_DoPtComp_(vertex_.getParameter<bool>("FH_DoPtComp")),
         vx_DoTightChi2_(vertex_.getParameter<bool>("FH_DoTightChi2")),
         vx_histogram_parameters_(vertex_.getParameter<std::vector<double> >("FH_HistogramParameters")),
+        vx_manny_histogram_parameters_(vertex_.getParameter<std::vector<double> >("Manny_HistogramParameters")),
         vx_nvtx_(vertex_.getParameter<unsigned int>("FH_NVtx")),
         vx_width_(vertex_.getParameter<double>("FH_VertexWidth")),
         vx_windowSize_(vertex_.getParameter<unsigned int>("FH_WindowSize")),
@@ -39,6 +40,8 @@ namespace l1tVertexFinder {
         vx_kmeans_nclusters_(vertex_.getParameter<unsigned int>("KmeansNumClusters")),
         vx_trkw_graph_(vertex_.getParameter<edm::FileInPath>("TrackWeightGraph")),
         vx_pattrec_graph_(vertex_.getParameter<edm::FileInPath>("PatternRecGraph")),
+        vx_manny_first_graph_(vertex_.getParameter<edm::FileInPath>("MannyFirstGraph")),
+        vx_manny_second_graph_(vertex_.getParameter<edm::FileInPath>("MannySecondGraph")),
         // Debug printout
         debug_(iConfig.getParameter<unsigned int>("debug")) {
     const std::string algoName(vertex_.getParameter<std::string>("Algorithm"));
@@ -77,7 +80,8 @@ namespace l1tVertexFinder {
       {"adaptive", Algorithm::adaptiveVertexReconstruction},
       {"HPV", Algorithm::HPV},
       {"K-means", Algorithm::Kmeans},
-      {"NNEmulation", Algorithm::NNEmulation}};
+      {"NNEmulation", Algorithm::NNEmulation},
+      {"Manny", Algorithm::Manny}};
 
   const std::map<Algorithm, Precision> AlgoSettings::algoPrecisionMap = {
       {Algorithm::PFA, Precision::Simulation},
@@ -92,6 +96,7 @@ namespace l1tVertexFinder {
       {Algorithm::adaptiveVertexReconstruction, Precision::Simulation},
       {Algorithm::HPV, Precision::Simulation},
       {Algorithm::Kmeans, Precision::Simulation},
-      {Algorithm::NNEmulation, Precision::Emulation}};
+      {Algorithm::NNEmulation, Precision::Emulation},
+      {Algorithm::Manny, Precision::Simulation}};
 
 }  // end namespace l1tVertexFinder
