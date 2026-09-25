@@ -95,12 +95,9 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
     // load graphs, create a new session and add the graphDef
     if (settings_.debug() > 1) {
       edm::LogInfo("VertexProducer") << "loading first graph from " << settings_.vx_manny_first_graph() << std::endl;
-      edm::LogInfo("VertexProducer") << "loading second graph from " << settings_.vx_manny_second_graph() << std::endl;
     }
     FirstGraph_ = tensorflow::loadGraphDef(settings_.vx_manny_first_graph());
     FirstSesh_ = tensorflow::createSession(FirstGraph_);
-    SecondGraph_ = tensorflow::loadGraphDef(settings_.vx_manny_second_graph());
-    SecondSesh_ = tensorflow::createSession(SecondGraph_);
   }
 }
 
@@ -175,7 +172,7 @@ void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::Event
       vf.NNVtxEmulation(wt_model, pat_model);
       break;
     case Algorithm::Manny:
-      vf.Manny(FirstSesh_, SecondSesh_);
+      vf.Manny(FirstSesh_);
       break;
   }
 
