@@ -152,6 +152,8 @@ namespace l1tVertexFinder {
     void Kmeans();
     /// Find maximum distance in two clusters of tracks
     void PVR();
+    /// Manny Algorithm
+    void Manny(tensorflow::Session* firstSesh = nullptr);
 
   private:
     const AlgoSettings* settings_;

@@ -19,6 +19,12 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
     : l1TracksToken_(consumes<TTTrackRefCollectionType>(iConfig.getParameter<edm::InputTag>("l1TracksInputTag"))),
       tTopoToken(esConsumes<TrackerTopology, TrackerTopologyRcd>()),
       outputCollectionName_(iConfig.getParameter<std::string>("l1VertexCollectionName")),
+      TrkWGraph_(nullptr),
+      TrkWSesh_(nullptr),
+      PattRecGraph_(nullptr),
+      PattRecSesh_(nullptr),
+      FirstGraph_(nullptr),
+      FirstSesh_(nullptr),
       settings_(AlgoSettings(iConfig)) {
   // Get configuration parameters
 
@@ -65,6 +71,9 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
     case Algorithm::NNEmulation:
       edm::LogInfo("VertexProducer") << "VertexProducer::Finding vertices using the Neural Network Emulation";
       break;
+    case Algorithm::Manny:
+      edm::LogInfo("VertexProducer") << "VertexProducer::Finding vertices using the Manny algorithm";
+      break;
   }
 
   //--- Define EDM output to be written to file (if required)
@@ -84,6 +93,15 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
     wt_model = wt_loader->load_model();
     pat_loader = std::make_unique<hls4mlEmulator::ModelLoader>(settings_.vx_patnn());
     pat_model = pat_loader->load_model();
+  }
+
+  if (settings_.vx_algo() == Algorithm::Manny) {
+    // load graphs, create a new session and add the graphDef
+    if (settings_.debug() > 1) {
+      edm::LogInfo("VertexProducer") << "loading first graph from " << settings_.vx_manny_first_graph() << std::endl;
+    }
+    FirstGraph_ = tensorflow::loadGraphDef(settings_.vx_manny_first_graph());
+    FirstSesh_ = tensorflow::createSession(FirstGraph_);
   }
 }
 
@@ -156,6 +174,9 @@ void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::Event
       break;
     case Algorithm::NNEmulation:
       vf.NNVtxEmulation(wt_model, pat_model);
+      break;
+    case Algorithm::Manny:
+      vf.Manny(FirstSesh_);
       break;
   }
 

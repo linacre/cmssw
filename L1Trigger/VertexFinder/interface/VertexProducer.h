@@ -48,6 +48,9 @@ private:
   const edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> tTopoToken;
   const std::string outputCollectionName_;
 
+  tensorflow::GraphDef* FirstGraph_;
+  tensorflow::Session* FirstSesh_;
+
   l1tVertexFinder::AlgoSettings settings_;
 
   std::unique_ptr<hls4mlEmulator::ModelLoader> wt_loader;

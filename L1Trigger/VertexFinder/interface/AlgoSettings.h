@@ -23,7 +23,8 @@ namespace l1tVertexFinder {
     adaptiveVertexReconstruction,
     HPV,
     Kmeans,
-    NNEmulation
+    NNEmulation,
+    Manny
   };
 
   enum class Precision { Simulation, Emulation };
@@ -81,6 +82,15 @@ namespace l1tVertexFinder {
     int vx_histogram_numbins() const {
       return (vx_histogram_parameters_.at(1) - vx_histogram_parameters_.at(0)) / vx_histogram_parameters_.at(2);
     }
+    // Manny histogram parameters (min, max, interval)
+    std::vector<double> vx_manny_histogram_parameters() const { return vx_manny_histogram_parameters_; }
+    double vx_manny_histogram_min() const { return vx_manny_histogram_parameters_.at(0); }
+    double vx_manny_histogram_max() const { return vx_manny_histogram_parameters_.at(1); }
+    double vx_manny_histogram_interval() const { return vx_manny_histogram_parameters_.at(2); }
+    int vx_manny_histogram_numbins() const {
+      return (((vx_manny_histogram_parameters_.at(1) - vx_manny_histogram_parameters_.at(0)) / vx_manny_histogram_parameters_.at(2))-1);
+    }
+    std::vector<double> vx_manny_inputVarScaleFactors() const { return vx_manny_inputVarScaleFactors_;}
     // fastHisto assumed vertex width
     float vx_width() const { return vx_width_; }
     // fastHisto track selection control
@@ -104,6 +114,8 @@ namespace l1tVertexFinder {
     std::string vx_wtnn() const { return vx_wtnn_; }
     std::string vx_patnn() const { return vx_patnn_; }
 
+    std::string vx_manny_first_graph() const { return vx_manny_first_graph_.fullPath(); }
+   
     //=== Debug printout
     unsigned int debug() const { return debug_; }
 
@@ -145,6 +157,8 @@ namespace l1tVertexFinder {
     bool vx_DoPtComp_;
     bool vx_DoTightChi2_;
     std::vector<double> vx_histogram_parameters_;
+    std::vector<double> vx_manny_histogram_parameters_;
+    std::vector<double> vx_manny_inputVarScaleFactors_;
     unsigned int vx_nvtx_;
     float vx_width_;
     unsigned int vx_windowSize_;
@@ -160,7 +174,7 @@ namespace l1tVertexFinder {
     unsigned int vx_kmeans_nclusters_;
     std::string vx_wtnn_;   //For NNVtx (Track)
     std::string vx_patnn_;  //For NNVtx (Pattern)
-
+    edm::FileInPath vx_manny_first_graph_;   //For Manny algorithm
     // Debug printout
     unsigned int debug_;
   };
